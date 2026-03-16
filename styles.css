@@ -446,6 +446,7 @@ select:hover {
   display: block;
   position: relative;
   z-index: 1;
+  transform: translateY(-4%);
   filter: drop-shadow(0 3px 5px rgba(129, 45, 83, 0.16));
 }
 
@@ -575,6 +576,7 @@ select:hover {
   .piece {
     width: 98%;
     height: 98%;
+    transform: translateY(-7%);
   }
 
   .square.selected {
@@ -639,6 +641,7 @@ select:hover {
   .piece {
     width: 96%;
     height: 96%;
+    transform: translateY(-8%);
   }
 
   .piece-chip {
