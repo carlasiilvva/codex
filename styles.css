@@ -131,6 +131,8 @@ select {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  width: 100%;
+  min-width: 0;
 }
 
 .topbar {
@@ -159,6 +161,8 @@ select {
 
 .board-card {
   padding: 18px;
+  width: 100%;
+  min-width: 0;
 }
 
 .board-header {
@@ -209,6 +213,8 @@ select:hover {
   grid-template-columns: 160px minmax(0, 1fr) 160px;
   gap: 16px;
   align-items: center;
+  width: 100%;
+  min-width: 0;
 }
 
 .captured-card {
@@ -228,10 +234,13 @@ select:hover {
   flex-direction: column;
   gap: 10px;
   align-items: center;
+  width: 100%;
+  min-width: 0;
 }
 
 .coords {
-  width: min(100%, 560px);
+  width: 100%;
+  max-width: 560px;
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   color: var(--muted);
@@ -245,7 +254,8 @@ select:hover {
 }
 
 .board {
-  width: min(100%, 560px);
+  width: 100%;
+  max-width: 560px;
   aspect-ratio: 1;
   display: grid;
   grid-template-columns: repeat(8, 1fr);
@@ -317,10 +327,10 @@ select:hover {
 }
 
 .white-piece {
-  color: #ff2f8e;
+  color: #ff0f7b;
   text-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.45),
-    0 0 16px rgba(255, 47, 142, 0.12);
+    0 1px 0 rgba(255, 255, 255, 0.35),
+    0 0 18px rgba(255, 15, 123, 0.16);
 }
 
 .black-piece {
@@ -389,11 +399,9 @@ select:hover {
 
   .coords {
     font-size: 0.8rem;
-    width: min(100%, calc(100vw - 58px));
   }
 
   .board {
-    width: min(100%, calc(100vw - 44px));
     border-width: 8px;
     border-radius: 22px;
   }
@@ -455,12 +463,10 @@ select:hover {
   }
 
   .coords {
-    width: min(100%, calc(100vw - 42px));
     font-size: 0.72rem;
   }
 
   .board {
-    width: min(100%, calc(100vw - 28px));
     border-width: 6px;
   }
 
