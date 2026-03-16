@@ -72,7 +72,15 @@
               <div class="coords coords-top" aria-hidden="true">
                 <span>a</span><span>b</span><span>c</span><span>d</span><span>e</span><span>f</span><span>g</span><span>h</span>
               </div>
-              <div class="board" id="board" aria-label="Tablero de ajedrez"></div>
+              <div class="board-stage">
+                <div class="board" id="board" aria-label="Tablero de ajedrez"></div>
+                <div class="result-overlay hidden" id="result-overlay" aria-live="polite">
+                  <div class="result-card">
+                    <p class="result-text" id="result-text">HAS GANADO!</p>
+                    <button id="result-reset-button" type="button">Nueva partida</button>
+                  </div>
+                </div>
+              </div>
               <div class="coords coords-bottom" aria-hidden="true">
                 <span>a</span><span>b</span><span>c</span><span>d</span><span>e</span><span>f</span><span>g</span><span>h</span>
               </div>

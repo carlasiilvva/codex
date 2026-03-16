@@ -5,6 +5,9 @@ const difficultyLabel = document.getElementById("difficulty-label");
 const scoreLabel = document.getElementById("score-label");
 const difficultySelect = document.getElementById("difficulty-select");
 const resetButton = document.getElementById("reset-button");
+const resultOverlay = document.getElementById("result-overlay");
+const resultText = document.getElementById("result-text");
+const resultResetButton = document.getElementById("result-reset-button");
 const capturedBlackNode = document.getElementById("captured-black");
 const capturedWhiteNode = document.getElementById("captured-white");
 
@@ -664,6 +667,25 @@ function minimax(gameState, depth, alpha, beta, maximizing) {
 }
 
 function updateGameStatus() {
+  const whiteKingAlive = Boolean(kingPosition(state.board, "w"));
+  const blackKingAlive = Boolean(kingPosition(state.board, "b"));
+
+  if (!whiteKingAlive || !blackKingAlive) {
+    state.winner = whiteKingAlive ? "Tú" : "Robot";
+    state.message = whiteKingAlive ? "HAS GANADO!" : "HAS PERDIDO!";
+    statusLabel.textContent = "Partida finalizada";
+    if (!state.resultRecorded) {
+      if (whiteKingAlive) {
+        state.score.human += 1;
+      } else {
+        state.score.robot += 1;
+      }
+      localStorage.setItem(SCORE_STORAGE_KEY, JSON.stringify(state.score));
+      state.resultRecorded = true;
+    }
+    return;
+  }
+
   const moves = allLegalMoves(state, state.turn);
   const checked = inCheck(state.board, state.turn);
   state.check = checked;
@@ -671,8 +693,7 @@ function updateGameStatus() {
   if (moves.length === 0) {
     if (checked) {
       state.winner = state.turn === "w" ? "Robot" : "Tú";
-      state.message =
-        state.turn === "w" ? "Jaque mate. El robot te ganó." : "Jaque mate. Le ganaste al robot.";
+      state.message = state.turn === "w" ? "HAS PERDIDO!" : "HAS GANADO!";
       statusLabel.textContent = "Jaque mate";
       if (!state.resultRecorded) {
         if (state.turn === "w") {
@@ -768,6 +789,15 @@ function renderBoard() {
   turnLabel.textContent = state.turn === "w" ? "Blancas" : "Negras";
   difficultyLabel.textContent = Number(difficultySelect.value) === 4 ? "Brutal" : "Agresivo";
   scoreLabel.textContent = `Humano ${state.score.human} · Robot ${state.score.robot}`;
+  if (state.winner === "Tú") {
+    resultText.textContent = "HAS GANADO!";
+    resultOverlay.classList.remove("hidden");
+  } else if (state.winner === "Robot") {
+    resultText.textContent = "HAS PERDIDO!";
+    resultOverlay.classList.remove("hidden");
+  } else {
+    resultOverlay.classList.add("hidden");
+  }
   renderCaptured();
 }
 
@@ -859,5 +889,6 @@ difficultySelect.addEventListener("change", () => {
 });
 
 resetButton.addEventListener("click", resetGame);
+resultResetButton.addEventListener("click", resetGame);
 
 renderBoard();
