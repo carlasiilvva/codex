@@ -811,10 +811,10 @@ async function requestEngineMove(gameState) {
       : "position startpos"
   );
 
-  const depth = Math.max(14, computeSearchDepth(gameState) * 3);
+  const thinkTime = gameState.aiDepth >= 5 ? 900 : 450;
   return new Promise((resolve) => {
     enginePending = resolve;
-    engine.postMessage(`go depth ${depth}`);
+    engine.postMessage(`go movetime ${thinkTime}`);
   });
 }
 
