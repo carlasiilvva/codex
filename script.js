@@ -2,7 +2,6 @@ const boardNode = document.getElementById("board");
 const turnLabel = document.getElementById("turn-label");
 const statusLabel = document.getElementById("status-label");
 const difficultyLabel = document.getElementById("difficulty-label");
-const messageLabel = document.getElementById("message-label");
 const difficultySelect = document.getElementById("difficulty-select");
 const resetButton = document.getElementById("reset-button");
 const capturedBlackNode = document.getElementById("captured-black");
@@ -727,7 +726,6 @@ function renderBoard() {
 
   turnLabel.textContent = state.turn === "w" ? "Blancas" : "Negras";
   difficultyLabel.textContent = Number(difficultySelect.value) === 4 ? "Brutal" : "Agresivo";
-  messageLabel.textContent = state.message;
   renderCaptured();
 }
 

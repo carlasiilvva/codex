@@ -58,9 +58,6 @@ select {
 .status-card,
 .board-card,
 .captured-card,
-.message-card,
-.controls-card,
-.feature-grid article,
 .square,
 button,
 select {
@@ -72,8 +69,6 @@ select {
 .game-panel,
 .board-card,
 .captured-card,
-.message-card,
-.controls-card,
 .status-card {
   background: var(--panel);
   backdrop-filter: blur(18px);
@@ -114,46 +109,17 @@ h2 {
 }
 
 .lede,
-.controls-card p,
-.message-card p:last-child,
-.feature-grid span {
+.message-card p:last-child {
   color: var(--muted);
   line-height: 1.65;
 }
 
-.feature-grid {
-  margin: 28px 0;
-  display: grid;
-  gap: 12px;
-}
-
-.feature-grid article,
-.controls-card,
 .status-card,
 .board-card,
 .captured-card,
-.message-card,
 button,
 select {
   border-radius: var(--radius-md);
-}
-
-.feature-grid article {
-  padding: 18px;
-}
-
-.feature-grid strong {
-  display: block;
-  font-size: 1.05rem;
-  margin-bottom: 5px;
-}
-
-.controls-card {
-  padding: 22px;
-}
-
-.controls-card h2 {
-  margin-bottom: 12px;
 }
 
 .game-panel {
@@ -164,15 +130,13 @@ select {
   gap: 16px;
 }
 
-.topbar,
-.bottom-panel {
+.topbar {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
 }
 
-.status-card,
-.message-card {
+.status-card {
   padding: 16px 18px;
 }
 
@@ -341,10 +305,6 @@ select:hover {
   filter: drop-shadow(0 3px 4px rgba(129, 45, 83, 0.18));
 }
 
-.bottom-panel {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
 @media (max-width: 1100px) {
   .app-shell {
     grid-template-columns: 1fr;
@@ -379,8 +339,7 @@ select:hover {
     order: -1;
   }
 
-  .topbar,
-  .bottom-panel {
+  .topbar {
     grid-template-columns: 1fr;
   }
 
@@ -395,7 +354,6 @@ select:hover {
   }
 
   .status-card,
-  .message-card,
   .captured-card {
     padding: 14px;
   }
@@ -450,8 +408,7 @@ select:hover {
 
   .intro-panel,
   .game-panel,
-  .board-card,
-  .controls-card {
+  .board-card {
     padding: 14px;
     border-radius: 22px;
   }
@@ -466,15 +423,6 @@ select:hover {
 
   .lede {
     font-size: 0.95rem;
-  }
-
-  .feature-grid {
-    margin: 18px 0;
-    gap: 10px;
-  }
-
-  .feature-grid article {
-    padding: 14px;
   }
 
   .board-header {
