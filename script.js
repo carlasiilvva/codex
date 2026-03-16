@@ -2,6 +2,7 @@ const boardNode = document.getElementById("board");
 const turnLabel = document.getElementById("turn-label");
 const statusLabel = document.getElementById("status-label");
 const difficultyLabel = document.getElementById("difficulty-label");
+const scoreLabel = document.getElementById("score-label");
 const difficultySelect = document.getElementById("difficulty-select");
 const resetButton = document.getElementById("reset-button");
 const capturedBlackNode = document.getElementById("captured-black");
@@ -23,6 +24,7 @@ const PIECES = {
   bk: "♚",
 };
 const PIECE_VALUES = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 20000 };
+const SCORE_STORAGE_KEY = "pink-mate-score";
 const PST = {
   p: [
     [0, 0, 0, 0, 0, 0, 0, 0],
@@ -86,6 +88,23 @@ const PST = {
   ],
 };
 
+function loadScore() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(SCORE_STORAGE_KEY) || "null");
+    if (
+      saved &&
+      Number.isInteger(saved.human) &&
+      Number.isInteger(saved.robot)
+    ) {
+      return saved;
+    }
+  } catch {
+    return { human: 0, robot: 0 };
+  }
+
+  return { human: 0, robot: 0 };
+}
+
 const initialBoard = () => [
   ["br", "bn", "bb", "bq", "bk", "bb", "bn", "br"],
   ["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"],
@@ -117,6 +136,8 @@ const createState = () => ({
   },
   capturedByWhite: [],
   capturedByBlack: [],
+  score: loadScore(),
+  resultRecorded: false,
 });
 
 let state = createState();
@@ -135,6 +156,7 @@ function cloneState(source) {
     },
     capturedByWhite: [...source.capturedByWhite],
     capturedByBlack: [...source.capturedByBlack],
+    score: { ...source.score },
   };
 }
 
@@ -652,6 +674,15 @@ function updateGameStatus() {
       state.message =
         state.turn === "w" ? "Jaque mate. El robot te ganó." : "Jaque mate. Le ganaste al robot.";
       statusLabel.textContent = "Jaque mate";
+      if (!state.resultRecorded) {
+        if (state.turn === "w") {
+          state.score.robot += 1;
+        } else {
+          state.score.human += 1;
+        }
+        localStorage.setItem(SCORE_STORAGE_KEY, JSON.stringify(state.score));
+        state.resultRecorded = true;
+      }
     } else {
       state.winner = "Tablas";
       state.message = "Tablas por ahogado. Qué pelea.";
@@ -736,6 +767,7 @@ function renderBoard() {
 
   turnLabel.textContent = state.turn === "w" ? "Blancas" : "Negras";
   difficultyLabel.textContent = Number(difficultySelect.value) === 4 ? "Brutal" : "Agresivo";
+  scoreLabel.textContent = `Humano ${state.score.human} · Robot ${state.score.robot}`;
   renderCaptured();
 }
 
