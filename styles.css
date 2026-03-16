@@ -246,6 +246,7 @@ select:hover {
   position: relative;
   width: 100%;
   max-width: 560px;
+  isolation: isolate;
 }
 
 .coords {
@@ -329,6 +330,7 @@ select:hover {
   padding: 18px;
   background: rgba(255, 248, 253, 0.62);
   backdrop-filter: blur(8px);
+  z-index: 30;
 }
 
 .result-overlay.hidden {
@@ -357,7 +359,17 @@ select:hover {
 .piece {
   position: relative;
   z-index: 1;
-  line-height: 1;
+  display: block;
+  width: 100%;
+  text-align: center;
+  line-height: 0.92;
+  font-family:
+    "Segoe UI Symbol",
+    "Apple Symbols",
+    "Noto Sans Symbols 2",
+    "Arial Unicode MS",
+    serif;
+  transform: translateY(2%);
   filter: drop-shadow(0 3px 4px rgba(129, 45, 83, 0.18));
 }
 
@@ -371,8 +383,8 @@ select:hover {
 .white-piece {
   color: #ff0f7b;
   text-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.35),
-    0 0 18px rgba(255, 15, 123, 0.16);
+    0 1px 0 rgba(255, 255, 255, 0.4),
+    0 0 20px rgba(255, 15, 123, 0.2);
 }
 
 .black-piece {
@@ -459,7 +471,7 @@ select:hover {
   }
 
   .square {
-    font-size: clamp(1.55rem, 8vw, 2.55rem);
+    font-size: clamp(1.35rem, 7.2vw, 2.3rem);
   }
 
   .square.selected {
@@ -468,6 +480,10 @@ select:hover {
 
   .square.capture::after {
     border-width: 4px;
+  }
+
+  .piece {
+    transform: translateY(1%);
   }
 }
 
@@ -508,6 +524,20 @@ select:hover {
 
   .result-text {
     font-size: clamp(1.8rem, 11vw, 2.7rem);
+  }
+
+  .board-stage,
+  .board,
+  .coords {
+    max-width: min(100%, 92vw);
+  }
+
+  .square {
+    font-size: clamp(1.2rem, 6.6vw, 1.95rem);
+  }
+
+  .piece {
+    line-height: 0.88;
   }
 
   .intro-panel {
