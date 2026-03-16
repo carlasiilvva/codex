@@ -563,7 +563,7 @@ select:hover {
   }
 
   .board {
-    aspect-ratio: 1 / 1.04;
+    aspect-ratio: 1 / 1.1;
     border-width: 8px;
     border-radius: 22px;
   }
@@ -575,9 +575,9 @@ select:hover {
   }
 
   .piece {
-    width: 90%;
-    height: 90%;
-    transform: translateY(-5%);
+    width: 84%;
+    height: 84%;
+    transform: translateY(-10%);
   }
 
   .square.selected {
@@ -640,13 +640,13 @@ select:hover {
   }
 
   .board {
-    aspect-ratio: 1 / 1.06;
+    aspect-ratio: 1 / 1.14;
   }
 
   .piece {
-    width: 88%;
-    height: 88%;
-    transform: translateY(-6%);
+    width: 82%;
+    height: 82%;
+    transform: translateY(-12%);
   }
 
   .piece-chip {
