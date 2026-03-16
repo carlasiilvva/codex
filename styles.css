@@ -563,6 +563,7 @@ select:hover {
   }
 
   .board {
+    aspect-ratio: 1 / 1.04;
     border-width: 8px;
     border-radius: 22px;
   }
@@ -636,6 +637,10 @@ select:hover {
   .board,
   .coords {
     max-width: min(100%, 92vw);
+  }
+
+  .board {
+    aspect-ratio: 1 / 1.06;
   }
 
   .piece {
