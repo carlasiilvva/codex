@@ -10,6 +10,7 @@ const resultText = document.getElementById("result-text");
 const resultResetButton = document.getElementById("result-reset-button");
 const capturedBlackNode = document.getElementById("captured-black");
 const capturedWhiteNode = document.getElementById("captured-white");
+const SVG_NS = "http://www.w3.org/2000/svg";
 
 const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"];
 const PIECES = {
@@ -106,6 +107,69 @@ function loadScore() {
   }
 
   return { human: 0, robot: 0 };
+}
+
+function createSvgElement(tag, attributes = {}) {
+  const node = document.createElementNS(SVG_NS, tag);
+  Object.entries(attributes).forEach(([key, value]) => {
+    node.setAttribute(key, value);
+  });
+  return node;
+}
+
+function createPieceGraphic(piece) {
+  const svg = createSvgElement("svg", {
+    viewBox: "0 0 100 100",
+    class: `piece piece-svg ${piece[0] === "w" ? "white-piece" : "black-piece"}`,
+    "aria-hidden": "true",
+  });
+  const fillClass = piece[0] === "w" ? "piece-fill-white" : "piece-fill-black";
+  const strokeClass = "piece-stroke";
+  const add = (tag, attrs) => svg.appendChild(createSvgElement(tag, attrs));
+
+  if (piece[1] === "p") {
+    add("circle", { cx: "50", cy: "25", r: "12", class: fillClass });
+    add("path", { d: "M38 46 C38 37 62 37 62 46 L66 62 L34 62 Z", class: fillClass });
+    add("rect", { x: "30", y: "62", width: "40", height: "10", rx: "5", class: fillClass });
+    add("rect", { x: "24", y: "74", width: "52", height: "8", rx: "4", class: fillClass });
+  } else if (piece[1] === "r") {
+    add("rect", { x: "28", y: "18", width: "8", height: "12", class: fillClass });
+    add("rect", { x: "42", y: "18", width: "8", height: "12", class: fillClass });
+    add("rect", { x: "56", y: "18", width: "8", height: "12", class: fillClass });
+    add("rect", { x: "28", y: "30", width: "36", height: "10", rx: "3", class: fillClass });
+    add("rect", { x: "34", y: "40", width: "24", height: "28", rx: "3", class: fillClass });
+    add("rect", { x: "28", y: "68", width: "36", height: "8", rx: "4", class: fillClass });
+    add("rect", { x: "22", y: "78", width: "48", height: "8", rx: "4", class: fillClass });
+  } else if (piece[1] === "n") {
+    add("path", {
+      d: "M34 74 L66 74 L62 82 L28 82 Z M40 74 L38 54 L28 42 L34 24 L52 18 L66 30 L60 40 L66 52 L58 74 Z",
+      class: fillClass,
+    });
+    add("circle", { cx: "49", cy: "30", r: "2.8", class: strokeClass });
+    add("path", { d: "M36 48 C44 44 52 44 58 48", class: strokeClass, fill: "none" });
+  } else if (piece[1] === "b") {
+    add("circle", { cx: "50", cy: "18", r: "6", class: fillClass });
+    add("path", { d: "M50 24 L62 42 L50 62 L38 42 Z", class: fillClass });
+    add("path", { d: "M50 28 L44 48", class: strokeClass, fill: "none" });
+    add("rect", { x: "34", y: "62", width: "32", height: "10", rx: "5", class: fillClass });
+    add("rect", { x: "26", y: "74", width: "48", height: "8", rx: "4", class: fillClass });
+  } else if (piece[1] === "q") {
+    add("circle", { cx: "26", cy: "22", r: "5", class: fillClass });
+    add("circle", { cx: "40", cy: "16", r: "5", class: fillClass });
+    add("circle", { cx: "60", cy: "16", r: "5", class: fillClass });
+    add("circle", { cx: "74", cy: "22", r: "5", class: fillClass });
+    add("path", { d: "M26 27 L36 58 L50 34 L64 58 L74 27 L68 68 L32 68 Z", class: fillClass });
+    add("rect", { x: "28", y: "68", width: "44", height: "8", rx: "4", class: fillClass });
+    add("rect", { x: "22", y: "78", width: "56", height: "8", rx: "4", class: fillClass });
+  } else if (piece[1] === "k") {
+    add("rect", { x: "46", y: "10", width: "8", height: "18", rx: "2", class: fillClass });
+    add("rect", { x: "38", y: "16", width: "24", height: "6", rx: "2", class: fillClass });
+    add("path", { d: "M38 32 C38 24 62 24 62 32 L60 44 C72 48 72 64 62 68 L38 68 C28 64 28 48 40 44 Z", class: fillClass });
+    add("rect", { x: "30", y: "68", width: "40", height: "8", rx: "4", class: fillClass });
+    add("rect", { x: "24", y: "78", width: "52", height: "8", rx: "4", class: fillClass });
+  }
+
+  return svg;
 }
 
 const initialBoard = () => [
@@ -731,18 +795,20 @@ function updateGameStatus() {
 }
 
 function renderCaptured() {
-  capturedBlackNode.innerHTML = state.capturedByWhite
-    .map(
-      (piece) =>
-        `<span class="piece-chip ${piece[0] === "w" ? "white-piece" : "black-piece"}">${PIECES[piece]}</span>`
-    )
-    .join("");
-  capturedWhiteNode.innerHTML = state.capturedByBlack
-    .map(
-      (piece) =>
-        `<span class="piece-chip ${piece[0] === "w" ? "white-piece" : "black-piece"}">${PIECES[piece]}</span>`
-    )
-    .join("");
+  capturedBlackNode.innerHTML = "";
+  capturedWhiteNode.innerHTML = "";
+  state.capturedByWhite.forEach((piece) => {
+    const chip = document.createElement("span");
+    chip.className = "piece-chip";
+    chip.appendChild(createPieceGraphic(piece));
+    capturedBlackNode.appendChild(chip);
+  });
+  state.capturedByBlack.forEach((piece) => {
+    const chip = document.createElement("span");
+    chip.className = "piece-chip";
+    chip.appendChild(createPieceGraphic(piece));
+    capturedWhiteNode.appendChild(chip);
+  });
 }
 
 function renderBoard() {
@@ -776,10 +842,7 @@ function renderBoard() {
 
       const piece = state.board[row][col];
       if (piece) {
-        const pieceNode = document.createElement("span");
-        pieceNode.className = `piece ${piece[0] === "w" ? "white-piece" : "black-piece"}`;
-        pieceNode.textContent = PIECES[piece];
-        square.appendChild(pieceNode);
+        square.appendChild(createPieceGraphic(piece));
       }
 
       boardNode.appendChild(square);
@@ -789,6 +852,7 @@ function renderBoard() {
   turnLabel.textContent = state.turn === "w" ? "Blancas" : "Negras";
   difficultyLabel.textContent = Number(difficultySelect.value) === 4 ? "Brutal" : "Agresivo";
   scoreLabel.textContent = `Humano ${state.score.human} · Robot ${state.score.robot}`;
+  boardNode.parentElement.classList.toggle("game-over", Boolean(state.winner && state.winner !== "Tablas"));
   if (state.winner === "Tú") {
     resultText.textContent = "HAS GANADO!";
     resultOverlay.classList.remove("hidden");
