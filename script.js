@@ -362,10 +362,10 @@ function formatSeconds(ms) {
 function setHumanTimerRunning(running) {
   if (running && !turnTimers.humanRunning) {
     turnTimers.humanStart = performance.now();
-    turnTimers.humanElapsed = 0;
   }
   if (!running && turnTimers.humanRunning && turnTimers.humanStart !== null) {
-    turnTimers.humanElapsed = performance.now() - turnTimers.humanStart;
+    turnTimers.humanElapsed += performance.now() - turnTimers.humanStart;
+    turnTimers.humanStart = null;
   }
   turnTimers.humanRunning = running;
 }
@@ -373,10 +373,10 @@ function setHumanTimerRunning(running) {
 function setRobotTimerRunning(running) {
   if (running && !turnTimers.robotRunning) {
     turnTimers.robotStart = performance.now();
-    turnTimers.robotElapsed = 0;
   }
   if (!running && turnTimers.robotRunning && turnTimers.robotStart !== null) {
-    turnTimers.robotElapsed = performance.now() - turnTimers.robotStart;
+    turnTimers.robotElapsed += performance.now() - turnTimers.robotStart;
+    turnTimers.robotStart = null;
   }
   turnTimers.robotRunning = running;
 }
@@ -407,14 +407,14 @@ function syncTurnTimers() {
 function renderTurnTimers() {
   const now = performance.now();
   const humanMs = turnTimers.humanRunning && turnTimers.humanStart !== null
-    ? now - turnTimers.humanStart
+    ? turnTimers.humanElapsed + (now - turnTimers.humanStart)
     : turnTimers.humanElapsed;
   const robotMs = turnTimers.robotRunning && turnTimers.robotStart !== null
-    ? now - turnTimers.robotStart
+    ? turnTimers.robotElapsed + (now - turnTimers.robotStart)
     : turnTimers.robotElapsed;
 
-  humanTimerTitle.textContent = turnTimers.humanRunning ? "Tú moviendo" : "Tu reacción";
-  robotTimerTitle.textContent = turnTimers.robotRunning ? "Robot pensando" : "Robot reacción";
+  humanTimerTitle.textContent = turnTimers.humanRunning ? "Tú moviendo" : "Tu tiempo total";
+  robotTimerTitle.textContent = turnTimers.robotRunning ? "Robot pensando" : "Robot tiempo total";
   humanTimerLabel.textContent = formatSeconds(humanMs);
   robotTimerLabel.textContent = formatSeconds(robotMs);
 }
