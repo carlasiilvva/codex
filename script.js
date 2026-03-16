@@ -133,40 +133,41 @@ function createPieceGraphic(piece) {
     add("rect", { x: "30", y: "62", width: "40", height: "10", rx: "5", class: fillClass });
     add("rect", { x: "24", y: "74", width: "52", height: "8", rx: "4", class: fillClass });
   } else if (piece[1] === "r") {
-    add("rect", { x: "28", y: "18", width: "8", height: "12", class: fillClass });
-    add("rect", { x: "42", y: "18", width: "8", height: "12", class: fillClass });
-    add("rect", { x: "56", y: "18", width: "8", height: "12", class: fillClass });
-    add("rect", { x: "28", y: "30", width: "36", height: "10", rx: "3", class: fillClass });
-    add("rect", { x: "34", y: "40", width: "24", height: "28", rx: "3", class: fillClass });
-    add("rect", { x: "28", y: "68", width: "36", height: "8", rx: "4", class: fillClass });
-    add("rect", { x: "22", y: "78", width: "48", height: "8", rx: "4", class: fillClass });
+    add("rect", { x: "24", y: "18", width: "12", height: "12", rx: "2", class: fillClass });
+    add("rect", { x: "44", y: "18", width: "12", height: "12", rx: "2", class: fillClass });
+    add("rect", { x: "64", y: "18", width: "12", height: "12", rx: "2", class: fillClass });
+    add("rect", { x: "24", y: "30", width: "52", height: "11", rx: "3", class: fillClass });
+    add("rect", { x: "32", y: "41", width: "36", height: "26", rx: "4", class: fillClass });
+    add("rect", { x: "26", y: "67", width: "48", height: "9", rx: "4", class: fillClass });
+    add("rect", { x: "20", y: "78", width: "60", height: "8", rx: "4", class: fillClass });
   } else if (piece[1] === "n") {
     add("path", {
-      d: "M34 74 L66 74 L62 82 L28 82 Z M40 74 L38 54 L28 42 L34 24 L52 18 L66 30 L60 40 L66 52 L58 74 Z",
+      d: "M24 80 L76 80 L72 87 L20 87 Z M34 80 L30 56 L24 44 L32 22 L56 16 L74 28 L70 40 L76 54 L64 80 Z",
       class: fillClass,
     });
-    add("circle", { cx: "49", cy: "30", r: "2.8", class: strokeClass });
-    add("path", { d: "M36 48 C44 44 52 44 58 48", class: strokeClass, fill: "none" });
+    add("circle", { cx: "51", cy: "29", r: "4", class: strokeClass });
+    add("path", { d: "M38 48 C47 44 55 44 61 48", class: strokeClass, fill: "none" });
   } else if (piece[1] === "b") {
-    add("circle", { cx: "50", cy: "18", r: "6", class: fillClass });
-    add("path", { d: "M50 24 L62 42 L50 62 L38 42 Z", class: fillClass });
-    add("path", { d: "M50 28 L44 48", class: strokeClass, fill: "none" });
-    add("rect", { x: "34", y: "62", width: "32", height: "10", rx: "5", class: fillClass });
-    add("rect", { x: "26", y: "74", width: "48", height: "8", rx: "4", class: fillClass });
+    add("circle", { cx: "50", cy: "18", r: "7", class: fillClass });
+    add("path", { d: "M50 26 L66 44 L58 64 L42 64 L34 44 Z", class: fillClass });
+    add("path", { d: "M50 30 L44 49", class: strokeClass, fill: "none" });
+    add("rect", { x: "31", y: "64", width: "38", height: "10", rx: "5", class: fillClass });
+    add("rect", { x: "24", y: "77", width: "52", height: "8", rx: "4", class: fillClass });
   } else if (piece[1] === "q") {
-    add("circle", { cx: "26", cy: "22", r: "5", class: fillClass });
-    add("circle", { cx: "40", cy: "16", r: "5", class: fillClass });
-    add("circle", { cx: "60", cy: "16", r: "5", class: fillClass });
-    add("circle", { cx: "74", cy: "22", r: "5", class: fillClass });
-    add("path", { d: "M26 27 L36 58 L50 34 L64 58 L74 27 L68 68 L32 68 Z", class: fillClass });
-    add("rect", { x: "28", y: "68", width: "44", height: "8", rx: "4", class: fillClass });
-    add("rect", { x: "22", y: "78", width: "56", height: "8", rx: "4", class: fillClass });
+    add("circle", { cx: "24", cy: "24", r: "5", class: fillClass });
+    add("circle", { cx: "38", cy: "16", r: "5", class: fillClass });
+    add("circle", { cx: "50", cy: "13", r: "5", class: fillClass });
+    add("circle", { cx: "62", cy: "16", r: "5", class: fillClass });
+    add("circle", { cx: "76", cy: "24", r: "5", class: fillClass });
+    add("path", { d: "M24 29 L34 58 L50 38 L66 58 L76 29 L70 68 L30 68 Z", class: fillClass });
+    add("rect", { x: "26", y: "68", width: "48", height: "9", rx: "4", class: fillClass });
+    add("rect", { x: "20", y: "79", width: "60", height: "8", rx: "4", class: fillClass });
   } else if (piece[1] === "k") {
     add("rect", { x: "46", y: "10", width: "8", height: "18", rx: "2", class: fillClass });
     add("rect", { x: "38", y: "16", width: "24", height: "6", rx: "2", class: fillClass });
-    add("path", { d: "M38 32 C38 24 62 24 62 32 L60 44 C72 48 72 64 62 68 L38 68 C28 64 28 48 40 44 Z", class: fillClass });
-    add("rect", { x: "30", y: "68", width: "40", height: "8", rx: "4", class: fillClass });
-    add("rect", { x: "24", y: "78", width: "52", height: "8", rx: "4", class: fillClass });
+    add("path", { d: "M36 32 C36 25 64 25 64 32 L62 44 C72 49 72 64 62 69 L38 69 C28 64 28 49 38 44 Z", class: fillClass });
+    add("rect", { x: "28", y: "69", width: "44", height: "9", rx: "4", class: fillClass });
+    add("rect", { x: "22", y: "80", width: "56", height: "8", rx: "4", class: fillClass });
   }
 
   return svg;
