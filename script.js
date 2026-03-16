@@ -29,6 +29,7 @@ const PIECES = {
 const PIECE_VALUES = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 20000 };
 const SCORE_STORAGE_KEY = "pink-mate-score";
 const MATE_SCORE = 1000000;
+const ENGINE_PATH = "stockfish.js";
 const PST = {
   p: [
     [0, 0, 0, 0, 0, 0, 0, 0],
@@ -202,10 +203,15 @@ const createState = () => ({
   capturedByBlack: [],
   score: loadScore(),
   resultRecorded: false,
+  history: [],
 });
 
 let state = createState();
 let positionCounts = new Map();
+let engine = null;
+let engineReady = false;
+let enginePending = null;
+let engineAvailable = typeof Worker !== "undefined";
 
 function cloneState(source) {
   return {
@@ -222,6 +228,7 @@ function cloneState(source) {
     capturedByWhite: [...source.capturedByWhite],
     capturedByBlack: [...source.capturedByBlack],
     score: { ...source.score },
+    history: [...source.history],
   };
 }
 
@@ -251,6 +258,14 @@ function recordCurrentPosition() {
 
 function coordToName(row, col) {
   return `${FILES[col]}${8 - row}`;
+}
+
+function toUciSquare(row, col) {
+  return `${FILES[col]}${8 - row}`;
+}
+
+function moveToUci(move) {
+  return `${toUciSquare(move.fromRow, move.fromCol)}${toUciSquare(move.toRow, move.toCol)}${move.promotion || ""}`;
 }
 
 function isEnemy(piece, turn) {
@@ -579,6 +594,7 @@ function applyMove(gameState, move) {
   next.selected = null;
   next.legalMoves = [];
   next.lastMove = { ...move };
+  next.history.push(moveToUci(move));
   next.enPassant = null;
   next.turn = enemy;
   next.check = false;
@@ -626,6 +642,102 @@ function applyMove(gameState, move) {
   }
 
   return next;
+}
+
+function initEngine() {
+  if (!engineAvailable || engine) {
+    return;
+  }
+
+  try {
+    engine = new Worker(ENGINE_PATH);
+    engine.onmessage = (event) => {
+      const line = String(event.data || "").trim();
+      if (line === "uciok") {
+        engine.postMessage("setoption name Threads value 1");
+        engine.postMessage("setoption name Hash value 64");
+        engine.postMessage("setoption name Skill Level value 20");
+        engine.postMessage("isready");
+        return;
+      }
+
+      if (line === "readyok") {
+        engineReady = true;
+        return;
+      }
+
+      if (line.startsWith("bestmove") && enginePending) {
+        const move = line.split(/\s+/)[1];
+        const resolve = enginePending;
+        enginePending = null;
+        resolve(move);
+      }
+    };
+    engine.onerror = () => {
+      engineAvailable = false;
+      engineReady = false;
+      engine = null;
+    };
+    engine.postMessage("uci");
+  } catch {
+    engineAvailable = false;
+    engineReady = false;
+    engine = null;
+  }
+}
+
+function waitForEngineReady() {
+  return new Promise((resolve) => {
+    if (!engineAvailable) {
+      resolve(false);
+      return;
+    }
+    initEngine();
+    if (engineReady) {
+      resolve(true);
+      return;
+    }
+
+    let attempts = 0;
+    const poll = () => {
+      if (engineReady) {
+        resolve(true);
+        return;
+      }
+      attempts += 1;
+      if (attempts > 200) {
+        resolve(false);
+        return;
+      }
+      window.setTimeout(poll, 25);
+    };
+    poll();
+  });
+}
+
+function legalMoveFromUci(gameState, uciMove) {
+  const moves = allLegalMoves(gameState, gameState.turn);
+  return moves.find((move) => moveToUci(move) === uciMove) || null;
+}
+
+async function requestEngineMove(gameState) {
+  const ready = await waitForEngineReady();
+  if (!ready || !engine) {
+    return null;
+  }
+
+  engine.postMessage("ucinewgame");
+  engine.postMessage(
+    gameState.history.length
+      ? `position startpos moves ${gameState.history.join(" ")}`
+      : "position startpos"
+  );
+
+  const depth = Math.max(14, computeSearchDepth(gameState) * 3);
+  return new Promise((resolve) => {
+    enginePending = resolve;
+    engine.postMessage(`go depth ${depth}`);
+  });
 }
 
 function legalMovesForSquare(gameState, row, col) {
@@ -1095,28 +1207,41 @@ function maybeRobotTurn() {
   state.message = "El robot está calculando una maldad...";
   renderBoard();
 
-  window.setTimeout(() => {
-    const result = minimax(
-      state,
-      computeSearchDepth(state),
-      -Infinity,
-      Infinity,
-      true,
-      new Map()
-    );
+  window.setTimeout(async () => {
+    let chosenMove = null;
+
+    if (engineAvailable) {
+      const engineMove = await requestEngineMove(state);
+      if (engineMove) {
+        chosenMove = legalMoveFromUci(state, engineMove);
+      }
+    }
+
+    if (!chosenMove) {
+      const result = minimax(
+        state,
+        computeSearchDepth(state),
+        -Infinity,
+        Infinity,
+        true,
+        new Map()
+      );
+      chosenMove = result.move;
+    }
+
     state.thinking = false;
 
-    if (!result.move) {
+    if (!chosenMove) {
       updateGameStatus();
       renderBoard();
       return;
     }
 
-    state = applyMove(state, result.move);
+    state = applyMove(state, chosenMove);
     recordCurrentPosition();
-    state.message = `Robot jugó ${coordToName(result.move.fromRow, result.move.fromCol)}-${coordToName(
-      result.move.toRow,
-      result.move.toCol
+    state.message = `Robot jugó ${coordToName(chosenMove.fromRow, chosenMove.fromCol)}-${coordToName(
+      chosenMove.toRow,
+      chosenMove.toCol
     )}.`;
     renderBoard();
   }, 40);
@@ -1149,4 +1274,5 @@ resetButton.addEventListener("click", resetGame);
 resultResetButton.addEventListener("click", resetGame);
 
 resetPositionCounts();
+initEngine();
 renderBoard();
