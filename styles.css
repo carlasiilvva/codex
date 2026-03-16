@@ -386,8 +386,10 @@ select:hover {
   filter: drop-shadow(0 3px 5px rgba(129, 45, 83, 0.16));
 }
 
+.piece-img,
 .piece-svg {
   pointer-events: none;
+  object-fit: contain;
 }
 
 .piece-fill-white {

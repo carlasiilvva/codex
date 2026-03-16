@@ -10,7 +10,6 @@ const resultText = document.getElementById("result-text");
 const resultResetButton = document.getElementById("result-reset-button");
 const capturedBlackNode = document.getElementById("captured-black");
 const capturedWhiteNode = document.getElementById("captured-white");
-const SVG_NS = "http://www.w3.org/2000/svg";
 
 const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"];
 const PIECES = {
@@ -109,68 +108,64 @@ function loadScore() {
   return { human: 0, robot: 0 };
 }
 
-function createSvgElement(tag, attributes = {}) {
-  const node = document.createElementNS(SVG_NS, tag);
-  Object.entries(attributes).forEach(([key, value]) => {
-    node.setAttribute(key, value);
-  });
-  return node;
-}
-
 function createPieceGraphic(piece) {
-  const svg = createSvgElement("svg", {
-    viewBox: "0 0 100 100",
-    class: `piece piece-svg ${piece[0] === "w" ? "white-piece" : "black-piece"}`,
-    "aria-hidden": "true",
-  });
-  const fillClass = piece[0] === "w" ? "piece-fill-white" : "piece-fill-black";
-  const strokeClass = "piece-stroke";
-  const add = (tag, attrs) => svg.appendChild(createSvgElement(tag, attrs));
+  const colors = piece[0] === "w"
+    ? { fill: "#ff1f86", stroke: "#b20f5b" }
+    : { fill: "#22121b", stroke: "#120b10" };
 
-  if (piece[1] === "p") {
-    add("circle", { cx: "50", cy: "25", r: "12", class: fillClass });
-    add("path", { d: "M38 46 C38 37 62 37 62 46 L66 62 L34 62 Z", class: fillClass });
-    add("rect", { x: "30", y: "62", width: "40", height: "10", rx: "5", class: fillClass });
-    add("rect", { x: "24", y: "74", width: "52", height: "8", rx: "4", class: fillClass });
-  } else if (piece[1] === "r") {
-    add("rect", { x: "24", y: "18", width: "12", height: "12", rx: "2", class: fillClass });
-    add("rect", { x: "44", y: "18", width: "12", height: "12", rx: "2", class: fillClass });
-    add("rect", { x: "64", y: "18", width: "12", height: "12", rx: "2", class: fillClass });
-    add("rect", { x: "24", y: "30", width: "52", height: "11", rx: "3", class: fillClass });
-    add("rect", { x: "32", y: "41", width: "36", height: "26", rx: "4", class: fillClass });
-    add("rect", { x: "26", y: "67", width: "48", height: "9", rx: "4", class: fillClass });
-    add("rect", { x: "20", y: "78", width: "60", height: "8", rx: "4", class: fillClass });
-  } else if (piece[1] === "n") {
-    add("path", {
-      d: "M24 80 L76 80 L72 87 L20 87 Z M34 80 L30 56 L24 44 L32 22 L56 16 L74 28 L70 40 L76 54 L64 80 Z",
-      class: fillClass,
-    });
-    add("circle", { cx: "51", cy: "29", r: "4", class: strokeClass });
-    add("path", { d: "M38 48 C47 44 55 44 61 48", class: strokeClass, fill: "none" });
-  } else if (piece[1] === "b") {
-    add("circle", { cx: "50", cy: "18", r: "7", class: fillClass });
-    add("path", { d: "M50 26 L66 44 L58 64 L42 64 L34 44 Z", class: fillClass });
-    add("path", { d: "M50 30 L44 49", class: strokeClass, fill: "none" });
-    add("rect", { x: "31", y: "64", width: "38", height: "10", rx: "5", class: fillClass });
-    add("rect", { x: "24", y: "77", width: "52", height: "8", rx: "4", class: fillClass });
-  } else if (piece[1] === "q") {
-    add("circle", { cx: "24", cy: "24", r: "5", class: fillClass });
-    add("circle", { cx: "38", cy: "16", r: "5", class: fillClass });
-    add("circle", { cx: "50", cy: "13", r: "5", class: fillClass });
-    add("circle", { cx: "62", cy: "16", r: "5", class: fillClass });
-    add("circle", { cx: "76", cy: "24", r: "5", class: fillClass });
-    add("path", { d: "M24 29 L34 58 L50 38 L66 58 L76 29 L70 68 L30 68 Z", class: fillClass });
-    add("rect", { x: "26", y: "68", width: "48", height: "9", rx: "4", class: fillClass });
-    add("rect", { x: "20", y: "79", width: "60", height: "8", rx: "4", class: fillClass });
-  } else if (piece[1] === "k") {
-    add("rect", { x: "46", y: "10", width: "8", height: "18", rx: "2", class: fillClass });
-    add("rect", { x: "38", y: "16", width: "24", height: "6", rx: "2", class: fillClass });
-    add("path", { d: "M36 32 C36 25 64 25 64 32 L62 44 C72 49 72 64 62 69 L38 69 C28 64 28 49 38 44 Z", class: fillClass });
-    add("rect", { x: "28", y: "69", width: "44", height: "9", rx: "4", class: fillClass });
-    add("rect", { x: "22", y: "80", width: "56", height: "8", rx: "4", class: fillClass });
-  }
+  const shapes = {
+    p: `
+      <circle cx="50" cy="24" r="12" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="4"/>
+      <path d="M38 46 C38 37 62 37 62 46 L66 62 L34 62 Z" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="4" stroke-linejoin="round"/>
+      <rect x="30" y="62" width="40" height="10" rx="5" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="4"/>
+      <rect x="24" y="76" width="52" height="8" rx="4" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="4"/>
+    `,
+    r: `
+      <rect x="24" y="18" width="12" height="12" rx="2" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="4"/>
+      <rect x="44" y="18" width="12" height="12" rx="2" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="4"/>
+      <rect x="64" y="18" width="12" height="12" rx="2" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="4"/>
+      <rect x="24" y="30" width="52" height="12" rx="3" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="4"/>
+      <rect x="32" y="42" width="36" height="26" rx="4" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="4"/>
+      <rect x="26" y="68" width="48" height="9" rx="4" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="4"/>
+      <rect x="20" y="80" width="60" height="8" rx="4" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="4"/>
+    `,
+    n: `
+      <path d="M24 82 L76 82 L72 88 L20 88 Z M34 82 L30 58 L24 46 L32 22 L56 18 L74 30 L70 42 L76 56 L64 82 Z" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="4" stroke-linejoin="round"/>
+      <circle cx="52" cy="31" r="4" fill="${colors.stroke}"/>
+    `,
+    b: `
+      <circle cx="50" cy="18" r="7" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="4"/>
+      <path d="M50 26 L66 44 L58 64 L42 64 L34 44 Z" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="4" stroke-linejoin="round"/>
+      <rect x="31" y="64" width="38" height="10" rx="5" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="4"/>
+      <rect x="24" y="78" width="52" height="8" rx="4" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="4"/>
+    `,
+    q: `
+      <circle cx="24" cy="24" r="5" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="3"/>
+      <circle cx="38" cy="16" r="5" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="3"/>
+      <circle cx="50" cy="13" r="5" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="3"/>
+      <circle cx="62" cy="16" r="5" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="3"/>
+      <circle cx="76" cy="24" r="5" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="3"/>
+      <path d="M24 30 L34 58 L50 38 L66 58 L76 30 L70 68 L30 68 Z" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="4" stroke-linejoin="round"/>
+      <rect x="26" y="68" width="48" height="9" rx="4" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="4"/>
+      <rect x="20" y="80" width="60" height="8" rx="4" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="4"/>
+    `,
+    k: `
+      <rect x="46" y="10" width="8" height="18" rx="2" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="4"/>
+      <rect x="38" y="16" width="24" height="6" rx="2" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="4"/>
+      <path d="M36 32 C36 25 64 25 64 32 L62 44 C72 49 72 64 62 69 L38 69 C28 64 28 49 38 44 Z" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="4" stroke-linejoin="round"/>
+      <rect x="28" y="69" width="44" height="9" rx="4" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="4"/>
+      <rect x="22" y="80" width="56" height="8" rx="4" fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="4"/>
+    `,
+  };
 
-  return svg;
+  const img = document.createElement("img");
+  img.className = `piece piece-img ${piece[0] === "w" ? "white-piece" : "black-piece"}`;
+  img.alt = "";
+  img.draggable = false;
+  img.src = `data:image/svg+xml;utf8,${encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">${shapes[piece[1]]}</svg>`
+  )}`;
+  return img;
 }
 
 const initialBoard = () => [
