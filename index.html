@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Neon Grid</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="layout">
+      <section class="hud">
+        <p class="eyebrow">Arcade Duel</p>
+        <h1>Neon Grid</h1>
+        <p class="subtitle">
+          Un duelo de motos de luz inspirado en Tron. Gana quien sobreviva más
+          tiempo sin chocar con una estela.
+        </p>
+
+        <div class="card">
+          <h2>Controles</h2>
+          <p><span>Jugador 1</span> W A S D</p>
+          <p><span>Jugador 2</span> Flechas</p>
+          <p><span>Reiniciar</span> R</p>
+        </div>
+
+        <div class="card">
+          <h2>Marcador</h2>
+          <p><span>Azul</span> <strong id="score-blue">0</strong></p>
+          <p><span>Naranja</span> <strong id="score-orange">0</strong></p>
+        </div>
+
+        <div class="status" id="status">
+          Pulsa cualquier dirección para empezar la ronda.
+        </div>
+      </section>
+
+      <section class="game-shell">
+        <canvas
+          id="game"
+          width="900"
+          height="600"
+          aria-label="Campo de juego Tron"
+        ></canvas>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
