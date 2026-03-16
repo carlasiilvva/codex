@@ -3,6 +3,10 @@ const turnLabel = document.getElementById("turn-label");
 const statusLabel = document.getElementById("status-label");
 const difficultyLabel = document.getElementById("difficulty-label");
 const scoreLabel = document.getElementById("score-label");
+const humanTimerTitle = document.getElementById("human-timer-title");
+const humanTimerLabel = document.getElementById("human-timer-label");
+const robotTimerTitle = document.getElementById("robot-timer-title");
+const robotTimerLabel = document.getElementById("robot-timer-label");
 const difficultySelect = document.getElementById("difficulty-select");
 const resetButton = document.getElementById("reset-button");
 const resultOverlay = document.getElementById("result-overlay");
@@ -342,6 +346,80 @@ let engine = null;
 let engineReady = false;
 let enginePending = null;
 let engineAvailable = typeof Worker !== "undefined";
+const turnTimers = {
+  humanStart: performance.now(),
+  robotStart: null,
+  humanElapsed: 0,
+  robotElapsed: 0,
+  humanRunning: true,
+  robotRunning: false,
+};
+
+function formatSeconds(ms) {
+  return `${(ms / 1000).toFixed(1)} s`;
+}
+
+function setHumanTimerRunning(running) {
+  if (running && !turnTimers.humanRunning) {
+    turnTimers.humanStart = performance.now();
+    turnTimers.humanElapsed = 0;
+  }
+  if (!running && turnTimers.humanRunning && turnTimers.humanStart !== null) {
+    turnTimers.humanElapsed = performance.now() - turnTimers.humanStart;
+  }
+  turnTimers.humanRunning = running;
+}
+
+function setRobotTimerRunning(running) {
+  if (running && !turnTimers.robotRunning) {
+    turnTimers.robotStart = performance.now();
+    turnTimers.robotElapsed = 0;
+  }
+  if (!running && turnTimers.robotRunning && turnTimers.robotStart !== null) {
+    turnTimers.robotElapsed = performance.now() - turnTimers.robotStart;
+  }
+  turnTimers.robotRunning = running;
+}
+
+function syncTurnTimers() {
+  if (state.winner || state.turn === "w" && state.thinking || state.turn === "b" && !state.thinking) {
+    setHumanTimerRunning(false);
+    setRobotTimerRunning(false);
+    return;
+  }
+
+  if (state.turn === "w" && !state.thinking) {
+    setRobotTimerRunning(false);
+    setHumanTimerRunning(true);
+    return;
+  }
+
+  if (state.turn === "b" && state.thinking) {
+    setHumanTimerRunning(false);
+    setRobotTimerRunning(true);
+    return;
+  }
+
+  setHumanTimerRunning(false);
+  setRobotTimerRunning(false);
+}
+
+function renderTurnTimers() {
+  const now = performance.now();
+  const humanMs = turnTimers.humanRunning && turnTimers.humanStart !== null
+    ? now - turnTimers.humanStart
+    : turnTimers.humanElapsed;
+  const robotMs = turnTimers.robotRunning && turnTimers.robotStart !== null
+    ? now - turnTimers.robotStart
+    : turnTimers.robotElapsed;
+
+  humanTimerTitle.textContent = turnTimers.humanRunning ? "Tú moviendo" : "Tu reacción";
+  robotTimerTitle.textContent = turnTimers.robotRunning ? "Robot pensando" : "Robot reacción";
+  humanTimerLabel.textContent = formatSeconds(humanMs);
+  robotTimerLabel.textContent = formatSeconds(robotMs);
+}
+
+window.setInterval(renderTurnTimers, 100);
 
 function cloneState(source) {
   return {
@@ -1244,6 +1322,7 @@ function renderCaptured() {
 
 function renderBoard() {
   updateGameStatus();
+  syncTurnTimers();
   boardNode.innerHTML = "";
   for (let row = 0; row < 8; row += 1) {
     for (let col = 0; col < 8; col += 1) {
@@ -1283,6 +1362,7 @@ function renderBoard() {
   turnLabel.textContent = state.turn === "w" ? "Rosas" : "Negras";
   difficultyLabel.textContent = Number(difficultySelect.value) >= 5 ? "Imposible" : "Difícil";
   scoreLabel.textContent = `Tú ${state.score.human} · Máquina ${state.score.robot}`;
+  renderTurnTimers();
   boardNode.parentElement.classList.toggle("game-over", Boolean(state.winner && state.winner !== "Tablas"));
   if (state.winner === "Tú") {
     resultText.textContent = "HAS GANADO!";
@@ -1386,6 +1466,12 @@ function maybeRobotTurn() {
 function resetGame() {
   state = createState();
   state.aiDepth = Number(difficultySelect.value);
+  turnTimers.humanStart = performance.now();
+  turnTimers.robotStart = null;
+  turnTimers.humanElapsed = 0;
+  turnTimers.robotElapsed = 0;
+  turnTimers.humanRunning = true;
+  turnTimers.robotRunning = false;
   resetPositionCounts();
   renderBoard();
 }

@@ -140,6 +140,12 @@ select {
   gap: 12px;
 }
 
+.timerbar {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
 .status-card {
   padding: 16px 18px;
 }
@@ -160,6 +166,10 @@ select {
 
 .score-card strong {
   white-space: nowrap;
+}
+
+.timer-card strong {
+  font-variant-numeric: tabular-nums;
 }
 
 .board-card {
@@ -492,6 +502,10 @@ select:hover {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .timerbar {
+    grid-template-columns: 1fr;
+  }
+
   .board-layout {
     grid-template-columns: 1fr;
   }
@@ -612,6 +626,10 @@ select:hover {
   }
 
   .topbar {
+    grid-template-columns: 1fr;
+  }
+
+  .timerbar {
     grid-template-columns: 1fr;
   }
 
