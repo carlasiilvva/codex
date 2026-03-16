@@ -9,12 +9,12 @@ const capturedWhiteNode = document.getElementById("captured-white");
 
 const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"];
 const PIECES = {
-  wp: "♙",
-  wn: "♘",
-  wb: "♗",
-  wr: "♖",
-  wq: "♕",
-  wk: "♔",
+  wp: "♟",
+  wn: "♞",
+  wb: "♝",
+  wr: "♜",
+  wq: "♛",
+  wk: "♚",
   bp: "♟",
   bn: "♞",
   bb: "♝",
@@ -679,8 +679,18 @@ function updateGameStatus() {
 }
 
 function renderCaptured() {
-  capturedBlackNode.textContent = state.capturedByWhite.map((piece) => PIECES[piece]).join(" ");
-  capturedWhiteNode.textContent = state.capturedByBlack.map((piece) => PIECES[piece]).join(" ");
+  capturedBlackNode.innerHTML = state.capturedByWhite
+    .map(
+      (piece) =>
+        `<span class="piece-chip ${piece[0] === "w" ? "white-piece" : "black-piece"}">${PIECES[piece]}</span>`
+    )
+    .join("");
+  capturedWhiteNode.innerHTML = state.capturedByBlack
+    .map(
+      (piece) =>
+        `<span class="piece-chip ${piece[0] === "w" ? "white-piece" : "black-piece"}">${PIECES[piece]}</span>`
+    )
+    .join("");
 }
 
 function renderBoard() {
@@ -715,7 +725,7 @@ function renderBoard() {
       const piece = state.board[row][col];
       if (piece) {
         const pieceNode = document.createElement("span");
-        pieceNode.className = "piece";
+        pieceNode.className = `piece ${piece[0] === "w" ? "white-piece" : "black-piece"}`;
         pieceNode.textContent = PIECES[piece];
         square.appendChild(pieceNode);
       }
