@@ -1280,7 +1280,7 @@ function renderBoard() {
     }
   }
 
-  turnLabel.textContent = state.turn === "w" ? "Blancas" : "Negras";
+  turnLabel.textContent = state.turn === "w" ? "Rosas" : "Negras";
   difficultyLabel.textContent = Number(difficultySelect.value) >= 5 ? "Imposible" : "Difícil";
   scoreLabel.textContent = `Tú ${state.score.human} · Máquina ${state.score.robot}`;
   boardNode.parentElement.classList.toggle("game-over", Boolean(state.winner && state.winner !== "Tablas"));
