@@ -208,6 +208,7 @@ const createState = () => ({
 });
 
 let state = createState();
+let positionCounts = new Map();
 
 function cloneState(source) {
   return {
@@ -229,6 +230,26 @@ function cloneState(source) {
 
 function inBounds(row, col) {
   return row >= 0 && row < 8 && col >= 0 && col < 8;
+}
+
+function positionKey(gameState) {
+  return [
+    gameState.board.map((row) => row.map((piece) => piece || "--").join("")).join("/"),
+    gameState.turn,
+    `${gameState.castling.w.kingSide ? "K" : ""}${gameState.castling.w.queenSide ? "Q" : ""}${gameState.castling.b.kingSide ? "k" : ""}${gameState.castling.b.queenSide ? "q" : ""}`,
+    gameState.enPassant ? `${gameState.enPassant.row}${gameState.enPassant.col}` : "-",
+  ].join("|");
+}
+
+function resetPositionCounts() {
+  positionCounts = new Map();
+  const key = positionKey(state);
+  positionCounts.set(key, 1);
+}
+
+function recordCurrentPosition() {
+  const key = positionKey(state);
+  positionCounts.set(key, (positionCounts.get(key) || 0) + 1);
 }
 
 function coordToName(row, col) {
@@ -731,6 +752,7 @@ function minimax(gameState, depth, alpha, beta, maximizing) {
 }
 
 function updateGameStatus() {
+  const repetitionCount = positionCounts.get(positionKey(state)) || 0;
   const whiteKingAlive = Boolean(kingPosition(state.board, "w"));
   const blackKingAlive = Boolean(kingPosition(state.board, "b"));
 
@@ -743,6 +765,22 @@ function updateGameStatus() {
         state.score.human += 1;
       } else {
         state.score.robot += 1;
+      }
+      localStorage.setItem(SCORE_STORAGE_KEY, JSON.stringify(state.score));
+      state.resultRecorded = true;
+    }
+    return;
+  }
+
+  if (repetitionCount >= 3) {
+    state.winner = state.turn === "w" ? "Robot" : "Tú";
+    state.message = state.turn === "w" ? "HAS PERDIDO!" : "HAS GANADO!";
+    statusLabel.textContent = "Sin salida";
+    if (!state.resultRecorded) {
+      if (state.turn === "w") {
+        state.score.robot += 1;
+      } else {
+        state.score.human += 1;
       }
       localStorage.setItem(SCORE_STORAGE_KEY, JSON.stringify(state.score));
       state.resultRecorded = true;
@@ -875,6 +913,7 @@ function selectSquare(row, col) {
     const chosenMove = state.legalMoves.find((move) => move.toRow === row && move.toCol === col);
     if (chosenMove) {
       state = applyMove(state, chosenMove);
+      recordCurrentPosition();
       const movedPiece = state.lastMove.promotion ? "peón coronado a dama" : "pieza";
       state.message = `Jugaste ${coordToName(chosenMove.fromRow, chosenMove.fromCol)}-${coordToName(
         chosenMove.toRow,
@@ -922,6 +961,7 @@ function maybeRobotTurn() {
     }
 
     state = applyMove(state, result.move);
+    recordCurrentPosition();
     state.message = `Robot jugó ${coordToName(result.move.fromRow, result.move.fromCol)}-${coordToName(
       result.move.toRow,
       result.move.toCol
@@ -933,6 +973,7 @@ function maybeRobotTurn() {
 function resetGame() {
   state = createState();
   state.aiDepth = Number(difficultySelect.value);
+  resetPositionCounts();
   renderBoard();
 }
 
@@ -955,4 +996,5 @@ difficultySelect.addEventListener("change", () => {
 resetButton.addEventListener("click", resetGame);
 resultResetButton.addEventListener("click", resetGame);
 
+resetPositionCounts();
 renderBoard();

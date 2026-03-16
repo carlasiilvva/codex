@@ -503,8 +503,8 @@ select:hover {
   }
 
   .piece {
-    width: 72%;
-    height: 72%;
+    width: 78%;
+    height: 78%;
   }
 
   .square.selected {
@@ -566,8 +566,8 @@ select:hover {
   }
 
   .piece {
-    width: 68%;
-    height: 68%;
+    width: 74%;
+    height: 74%;
   }
 
   .piece-chip {
