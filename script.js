@@ -28,6 +28,7 @@ const PIECES = {
 };
 const PIECE_VALUES = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 20000 };
 const SCORE_STORAGE_KEY = "pink-mate-score";
+const MATE_SCORE = 1000000;
 const PST = {
   p: [
     [0, 0, 0, 0, 0, 0, 0, 0],
@@ -653,6 +654,97 @@ function allLegalMoves(gameState, turn = gameState.turn) {
   return moves;
 }
 
+function countPieces(board) {
+  let total = 0;
+  for (let row = 0; row < 8; row += 1) {
+    for (let col = 0; col < 8; col += 1) {
+      if (board[row][col]) {
+        total += 1;
+      }
+    }
+  }
+  return total;
+}
+
+function countPieceType(board, turn, type) {
+  let total = 0;
+  for (let row = 0; row < 8; row += 1) {
+    for (let col = 0; col < 8; col += 1) {
+      if (board[row][col] === `${turn}${type}`) {
+        total += 1;
+      }
+    }
+  }
+  return total;
+}
+
+function pawnStructureScore(board, turn) {
+  const direction = turn === "w" ? -1 : 1;
+  const enemy = turn === "w" ? "b" : "w";
+  const files = Array(8).fill(0);
+  let score = 0;
+
+  for (let row = 0; row < 8; row += 1) {
+    for (let col = 0; col < 8; col += 1) {
+      if (board[row][col] === `${turn}p`) {
+        files[col] += 1;
+
+        let passed = true;
+        for (let enemyRow = row + direction; enemyRow >= 0 && enemyRow < 8; enemyRow += direction) {
+          for (const enemyCol of [col - 1, col, col + 1]) {
+            if (enemyCol >= 0 && enemyCol < 8 && board[enemyRow][enemyCol] === `${enemy}p`) {
+              passed = false;
+            }
+          }
+        }
+
+        if (passed) {
+          const advance = turn === "w" ? 6 - row : row - 1;
+          score += 18 + advance * 6;
+        }
+
+        if (col >= 2 && col <= 5) {
+          score += 8;
+        }
+      }
+    }
+  }
+
+  for (let col = 0; col < 8; col += 1) {
+    if (files[col] > 1) {
+      score -= (files[col] - 1) * 14;
+    }
+    if (
+      files[col] > 0 &&
+      (col === 0 || files[col - 1] === 0) &&
+      (col === 7 || files[col + 1] === 0)
+    ) {
+      score -= 12;
+    }
+  }
+
+  return score;
+}
+
+function kingSafetyScore(gameState, turn) {
+  const king = kingPosition(gameState.board, turn);
+  if (!king) {
+    return 0;
+  }
+
+  let score = 0;
+  if ((turn === "w" && king.row === 7 && (king.col === 6 || king.col === 2)) ||
+      (turn === "b" && king.row === 0 && (king.col === 6 || king.col === 2))) {
+    score += 35;
+  }
+
+  if (squareAttacked(gameState.board, king.row, king.col, turn === "w" ? "b" : "w")) {
+    score -= 30;
+  }
+
+  return score;
+}
+
 function evaluateBoard(board) {
   let score = 0;
   for (let row = 0; row < 8; row += 1) {
@@ -675,41 +767,82 @@ function evaluateState(gameState) {
   const currentMoves = allLegalMoves(gameState, gameState.turn);
   if (currentMoves.length === 0) {
     if (inCheck(gameState.board, gameState.turn)) {
-      return gameState.turn === "b" ? -999999 : 999999;
+      return gameState.turn === "b" ? -MATE_SCORE : MATE_SCORE;
     }
     return 0;
   }
 
   let score = evaluateBoard(gameState.board);
-  score += allLegalMoves(gameState, "b").length * 4;
-  score -= allLegalMoves(gameState, "w").length * 4;
+  const blackMoves = allLegalMoves(gameState, "b");
+  const whiteMoves = allLegalMoves(gameState, "w");
+  score += blackMoves.length * 7;
+  score -= whiteMoves.length * 7;
+
+  score += pawnStructureScore(gameState.board, "b");
+  score -= pawnStructureScore(gameState.board, "w");
+  score += kingSafetyScore(gameState, "b");
+  score -= kingSafetyScore(gameState, "w");
+
+  const blackBishops = countPieceType(gameState.board, "b", "b");
+  const whiteBishops = countPieceType(gameState.board, "w", "b");
+  if (blackBishops >= 2) {
+    score += 35;
+  }
+  if (whiteBishops >= 2) {
+    score -= 35;
+  }
 
   if (inCheck(gameState.board, "w")) {
-    score += 24;
+    score += 38;
   }
   if (inCheck(gameState.board, "b")) {
-    score -= 24;
+    score -= 38;
+  }
+
+  const piecesLeft = countPieces(gameState.board);
+  if (piecesLeft <= 10) {
+    score += (countPieceType(gameState.board, "b", "p") - countPieceType(gameState.board, "w", "p")) * 10;
   }
 
   return score;
 }
 
-function sortMoves(moves) {
+function sortMoves(gameState, moves) {
   return [...moves].sort((a, b) => {
-    const aScore = (a.captured ? PIECE_VALUES[a.captured[1]] : 0) + (a.promotion ? 800 : 0);
-    const bScore = (b.captured ? PIECE_VALUES[b.captured[1]] : 0) + (b.promotion ? 800 : 0);
+    const aScore =
+      (a.captured ? PIECE_VALUES[a.captured[1]] * 10 - PIECE_VALUES[gameState.board[a.fromRow][a.fromCol][1]] : 0) +
+      (a.promotion ? 900 : 0) +
+      ((a.toRow >= 2 && a.toRow <= 5 && a.toCol >= 2 && a.toCol <= 5) ? 20 : 0);
+    const bScore =
+      (b.captured ? PIECE_VALUES[b.captured[1]] * 10 - PIECE_VALUES[gameState.board[b.fromRow][b.fromCol][1]] : 0) +
+      (b.promotion ? 900 : 0) +
+      ((b.toRow >= 2 && b.toRow <= 5 && b.toCol >= 2 && b.toCol <= 5) ? 20 : 0);
     return bScore - aScore;
   });
 }
 
-function minimax(gameState, depth, alpha, beta, maximizing) {
-  if (depth === 0) {
-    return { score: evaluateState(gameState), move: null };
+function searchKey(gameState, depth, maximizing) {
+  return `${positionKey(gameState)}|${depth}|${maximizing ? "max" : "min"}`;
+}
+
+function minimax(gameState, depth, alpha, beta, maximizing, table) {
+  const key = searchKey(gameState, depth, maximizing);
+  const cached = table.get(key);
+  if (cached) {
+    return cached;
   }
 
-  const moves = sortMoves(allLegalMoves(gameState, gameState.turn));
+  if (depth === 0) {
+    const result = { score: evaluateState(gameState), move: null };
+    table.set(key, result);
+    return result;
+  }
+
+  const moves = sortMoves(gameState, allLegalMoves(gameState, gameState.turn));
   if (moves.length === 0) {
-    return { score: evaluateState(gameState), move: null };
+    const result = { score: evaluateState(gameState), move: null };
+    table.set(key, result);
+    return result;
   }
 
   let bestMove = null;
@@ -718,7 +851,7 @@ function minimax(gameState, depth, alpha, beta, maximizing) {
     let bestScore = -Infinity;
     for (const move of moves) {
       const nextState = applyMove(gameState, move);
-      const result = minimax(nextState, depth - 1, alpha, beta, false);
+      const result = minimax(nextState, depth - 1, alpha, beta, false, table);
       if (result.score > bestScore) {
         bestScore = result.score;
         bestMove = move;
@@ -728,13 +861,15 @@ function minimax(gameState, depth, alpha, beta, maximizing) {
         break;
       }
     }
-    return { score: bestScore, move: bestMove };
+    const result = { score: bestScore, move: bestMove };
+    table.set(key, result);
+    return result;
   }
 
   let bestScore = Infinity;
   for (const move of moves) {
     const nextState = applyMove(gameState, move);
-    const result = minimax(nextState, depth - 1, alpha, beta, true);
+    const result = minimax(nextState, depth - 1, alpha, beta, true, table);
     if (result.score < bestScore) {
       bestScore = result.score;
       bestMove = move;
@@ -744,7 +879,21 @@ function minimax(gameState, depth, alpha, beta, maximizing) {
       break;
     }
   }
-  return { score: bestScore, move: bestMove };
+  const result = { score: bestScore, move: bestMove };
+  table.set(key, result);
+  return result;
+}
+
+function computeSearchDepth(gameState) {
+  const piecesLeft = countPieces(gameState.board);
+  let depth = gameState.aiDepth;
+  if (piecesLeft <= 12) {
+    depth += 1;
+  }
+  if (piecesLeft <= 8) {
+    depth += 1;
+  }
+  return Math.min(depth, 7);
 }
 
 function updateGameStatus() {
@@ -884,7 +1033,7 @@ function renderBoard() {
   }
 
   turnLabel.textContent = state.turn === "w" ? "Blancas" : "Negras";
-  difficultyLabel.textContent = Number(difficultySelect.value) === 4 ? "Brutal" : "Agresivo";
+  difficultyLabel.textContent = Number(difficultySelect.value) >= 5 ? "Brutal" : "Agresivo";
   scoreLabel.textContent = `Humano ${state.score.human} · Robot ${state.score.robot}`;
   boardNode.parentElement.classList.toggle("game-over", Boolean(state.winner && state.winner !== "Tablas"));
   if (state.winner === "Tú") {
@@ -947,7 +1096,14 @@ function maybeRobotTurn() {
   renderBoard();
 
   window.setTimeout(() => {
-    const result = minimax(state, state.aiDepth, -Infinity, Infinity, true);
+    const result = minimax(
+      state,
+      computeSearchDepth(state),
+      -Infinity,
+      Infinity,
+      true,
+      new Map()
+    );
     state.thinking = false;
 
     if (!result.move) {
@@ -984,7 +1140,7 @@ boardNode.addEventListener("click", (event) => {
 
 difficultySelect.addEventListener("change", () => {
   state.aiDepth = Number(difficultySelect.value);
-  difficultyLabel.textContent = state.aiDepth === 4 ? "Brutal" : "Agresivo";
+  difficultyLabel.textContent = state.aiDepth >= 5 ? "Brutal" : "Agresivo";
   state.message = "Dificultad actualizada para la próxima jugada.";
   renderBoard();
 });
