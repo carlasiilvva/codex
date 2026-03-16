@@ -754,7 +754,7 @@ function updateGameStatus() {
 
   if (!whiteKingAlive || !blackKingAlive) {
     state.winner = whiteKingAlive ? "Tú" : "Robot";
-    state.message = whiteKingAlive ? "HAS GANADO!" : "HAS PERDIDO!";
+    state.message = whiteKingAlive ? "HAS GANADO!" : "HAS PERDIDO, JODETE!";
     statusLabel.textContent = "Partida finalizada";
     if (!state.resultRecorded) {
       if (whiteKingAlive) {
@@ -770,7 +770,7 @@ function updateGameStatus() {
 
   if (repetitionCount >= 3) {
     state.winner = state.turn === "w" ? "Robot" : "Tú";
-    state.message = state.turn === "w" ? "HAS PERDIDO!" : "HAS GANADO!";
+    state.message = state.turn === "w" ? "HAS PERDIDO, JODETE!" : "HAS GANADO!";
     statusLabel.textContent = "Sin salida";
     if (!state.resultRecorded) {
       if (state.turn === "w") {
@@ -791,7 +791,7 @@ function updateGameStatus() {
   if (moves.length === 0) {
     if (checked) {
       state.winner = state.turn === "w" ? "Robot" : "Tú";
-      state.message = state.turn === "w" ? "HAS PERDIDO!" : "HAS GANADO!";
+      state.message = state.turn === "w" ? "HAS PERDIDO, JODETE!" : "HAS GANADO!";
       statusLabel.textContent = "Jaque mate";
       if (!state.resultRecorded) {
         if (state.turn === "w") {
@@ -891,7 +891,7 @@ function renderBoard() {
     resultText.textContent = "HAS GANADO!";
     resultOverlay.classList.remove("hidden");
   } else if (state.winner === "Robot") {
-    resultText.textContent = "HAS PERDIDO!";
+    resultText.textContent = "HAS PERDIDO, JODETE!";
     resultOverlay.classList.remove("hidden");
   } else {
     resultOverlay.classList.add("hidden");
