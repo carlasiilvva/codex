@@ -1145,7 +1145,7 @@ function renderBoard() {
   }
 
   turnLabel.textContent = state.turn === "w" ? "Blancas" : "Negras";
-  difficultyLabel.textContent = Number(difficultySelect.value) >= 5 ? "Brutal" : "Agresivo";
+  difficultyLabel.textContent = Number(difficultySelect.value) >= 5 ? "Imposible" : "Difícil";
   scoreLabel.textContent = `Humano ${state.score.human} · Robot ${state.score.robot}`;
   boardNode.parentElement.classList.toggle("game-over", Boolean(state.winner && state.winner !== "Tablas"));
   if (state.winner === "Tú") {
@@ -1265,7 +1265,7 @@ boardNode.addEventListener("click", (event) => {
 
 difficultySelect.addEventListener("change", () => {
   state.aiDepth = Number(difficultySelect.value);
-  difficultyLabel.textContent = state.aiDepth >= 5 ? "Brutal" : "Agresivo";
+  difficultyLabel.textContent = state.aiDepth >= 5 ? "Imposible" : "Difícil";
   state.message = "Dificultad actualizada para la próxima jugada.";
   renderBoard();
 });
