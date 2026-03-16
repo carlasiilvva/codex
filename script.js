@@ -10,6 +10,11 @@ const resultText = document.getElementById("result-text");
 const resultResetButton = document.getElementById("result-reset-button");
 const capturedBlackNode = document.getElementById("captured-black");
 const capturedWhiteNode = document.getElementById("captured-white");
+const globalHumanLabel = document.getElementById("global-human-label");
+const globalMachineLabel = document.getElementById("global-machine-label");
+const globalTotalLabel = document.getElementById("global-total-label");
+const resultsNote = document.getElementById("results-note");
+const resultsList = document.getElementById("results-list");
 
 const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"];
 const PIECES = {
@@ -28,8 +33,12 @@ const PIECES = {
 };
 const PIECE_VALUES = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 20000 };
 const SCORE_STORAGE_KEY = "pink-mate-score";
+const SESSION_STORAGE_KEY = "pink-mate-session-id";
 const MATE_SCORE = 1000000;
 const ENGINE_PATH = "stockfish.js";
+const SUPABASE_URL = "";
+const SUPABASE_ANON_KEY = "";
+const RESULTS_TABLE = "pink_mate_results";
 const PST = {
   p: [
     [0, 0, 0, 0, 0, 0, 0, 0],
@@ -108,6 +117,127 @@ function loadScore() {
   }
 
   return { human: 0, robot: 0 };
+}
+
+function getSessionId() {
+  const existing = localStorage.getItem(SESSION_STORAGE_KEY);
+  if (existing) {
+    return existing;
+  }
+
+  const created = `pm-${Math.random().toString(36).slice(2, 10)}${Date.now().toString(36)}`;
+  localStorage.setItem(SESSION_STORAGE_KEY, created);
+  return created;
+}
+
+function supabaseEnabled() {
+  return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
+}
+
+async function supabaseRequest(path, options = {}) {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    ...options,
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      "Content-Type": "application/json",
+      Prefer: "return=representation",
+      ...(options.headers || {}),
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Supabase ${response.status}`);
+  }
+
+  if (response.status === 204) {
+    return null;
+  }
+
+  return response.json();
+}
+
+function formatWhen(dateString) {
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+  return date.toLocaleString("es-ES", {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function renderGlobalResults(rows = []) {
+  let humanWins = 0;
+  let machineWins = 0;
+
+  rows.forEach((row) => {
+    if (row.result === "human_win") {
+      humanWins += 1;
+    }
+    if (row.result === "machine_win") {
+      machineWins += 1;
+    }
+  });
+
+  globalHumanLabel.textContent = String(humanWins);
+  globalMachineLabel.textContent = String(machineWins);
+  globalTotalLabel.textContent = String(rows.length);
+  resultsList.innerHTML = "";
+
+  rows.slice(0, 8).forEach((row) => {
+    const item = document.createElement("article");
+    item.className = "result-row";
+    const label = row.result === "human_win" ? "Ganó jugador" : "Ganó máquina";
+    item.innerHTML = `<strong>${label}</strong><span>${formatWhen(row.created_at)}</span>`;
+    resultsList.appendChild(item);
+  });
+}
+
+async function refreshGlobalResults() {
+  if (!supabaseEnabled()) {
+    resultsNote.textContent = "Conecta Supabase para guardar y ver resultados globales.";
+    renderGlobalResults([]);
+    return;
+  }
+
+  try {
+    const rows = await supabaseRequest(
+      `${RESULTS_TABLE}?select=result,created_at&order=created_at.desc&limit=50`
+    );
+    resultsNote.textContent = "Resultados reales guardados desde el link.";
+    renderGlobalResults(Array.isArray(rows) ? rows : []);
+  } catch {
+    resultsNote.textContent = "No pude cargar los resultados globales ahora mismo.";
+    renderGlobalResults([]);
+  }
+}
+
+async function saveGlobalResult(result) {
+  if (!supabaseEnabled()) {
+    return;
+  }
+
+  try {
+    await supabaseRequest(RESULTS_TABLE, {
+      method: "POST",
+      body: JSON.stringify([
+        {
+          session_id: getSessionId(),
+          result,
+          difficulty: state.aiDepth >= 5 ? "imposible" : "dificil",
+          move_count: state.history.length,
+          user_agent: navigator.userAgent,
+        },
+      ]),
+    });
+    await refreshGlobalResults();
+  } catch {
+    resultsNote.textContent = "No pude guardar esta partida en Supabase.";
+  }
 }
 
 function createPieceGraphic(piece) {
@@ -1020,8 +1150,10 @@ function updateGameStatus() {
     if (!state.resultRecorded) {
       if (whiteKingAlive) {
         state.score.human += 1;
+        saveGlobalResult("human_win");
       } else {
         state.score.robot += 1;
+        saveGlobalResult("machine_win");
       }
       localStorage.setItem(SCORE_STORAGE_KEY, JSON.stringify(state.score));
       state.resultRecorded = true;
@@ -1036,8 +1168,10 @@ function updateGameStatus() {
     if (!state.resultRecorded) {
       if (state.turn === "w") {
         state.score.robot += 1;
+        saveGlobalResult("machine_win");
       } else {
         state.score.human += 1;
+        saveGlobalResult("human_win");
       }
       localStorage.setItem(SCORE_STORAGE_KEY, JSON.stringify(state.score));
       state.resultRecorded = true;
@@ -1057,8 +1191,10 @@ function updateGameStatus() {
       if (!state.resultRecorded) {
         if (state.turn === "w") {
           state.score.robot += 1;
+          saveGlobalResult("machine_win");
         } else {
           state.score.human += 1;
+          saveGlobalResult("human_win");
         }
         localStorage.setItem(SCORE_STORAGE_KEY, JSON.stringify(state.score));
         state.resultRecorded = true;
@@ -1275,4 +1411,5 @@ resultResetButton.addEventListener("click", resetGame);
 
 resetPositionCounts();
 initEngine();
+refreshGlobalResults();
 renderBoard();
