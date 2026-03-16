@@ -11,6 +11,15 @@
   --shadow-orange: rgba(255, 138, 61, 0.45);
 }
 
+html,
+body {
+  min-height: 100%;
+  background:
+    radial-gradient(circle at top, rgba(51, 209, 255, 0.18), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(255, 138, 61, 0.18), transparent 26%),
+    linear-gradient(135deg, #02060d 0%, #07121f 45%, #0c2033 100%);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -20,10 +29,7 @@ body {
   min-height: 100vh;
   font-family: "Orbitron", sans-serif;
   color: var(--text);
-  background:
-    radial-gradient(circle at top, rgba(51, 209, 255, 0.18), transparent 30%),
-    radial-gradient(circle at bottom right, rgba(255, 138, 61, 0.18), transparent 26%),
-    linear-gradient(135deg, #02060d 0%, #07121f 45%, #0c2033 100%);
+  overflow-x: hidden;
 }
 
 .layout {
@@ -31,7 +37,7 @@ body {
   margin: 0 auto;
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: 320px minmax(0, 1fr);
   gap: 24px;
   align-items: center;
   padding: 24px 0;
@@ -43,6 +49,7 @@ body {
   background: var(--panel);
   backdrop-filter: blur(12px);
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+  min-width: 0;
 }
 
 .hud {
@@ -126,6 +133,7 @@ h1 {
 
 canvas {
   width: 100%;
+  max-width: 100%;
   height: auto;
   display: block;
   position: relative;
@@ -141,7 +149,7 @@ canvas {
 
 @media (max-width: 980px) {
   .layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     width: min(900px, calc(100vw - 24px));
   }
 
@@ -151,5 +159,43 @@ canvas {
 
   .game-shell {
     order: 1;
+  }
+}
+
+@media (max-width: 640px) {
+  .layout {
+    width: calc(100vw - 16px);
+    gap: 16px;
+    padding: 16px 0;
+  }
+
+  .hud,
+  .game-shell {
+    border-radius: 22px;
+  }
+
+  .hud {
+    padding: 20px;
+  }
+
+  .game-shell {
+    padding: 14px;
+  }
+
+  h1 {
+    font-size: 3rem;
+  }
+
+  .subtitle {
+    font-size: 0.88rem;
+  }
+
+  .card,
+  .status {
+    font-size: 0.82rem;
+  }
+
+  .card span {
+    min-width: 92px;
   }
 }
